@@ -1,10 +1,10 @@
 // import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ILoginProps, loginService } from '../api/userApi';
-import './Login.scss';
-import { Button, Checkbox, Form, Input } from 'antd';
-import { encryptedText } from '../utils/constant';
-import { message } from 'antd';
+import { useNavigate } from "react-router-dom";
+import { ILoginProps, loginService } from "../api/userApi";
+import "./Login.scss";
+import { Button, Checkbox, Form, Input } from "antd";
+import { encryptedText } from "../utils/constant";
+import { message } from "antd";
 
 interface ErrorInfo {
   values: unknown;
@@ -28,17 +28,17 @@ export default function Login() {
 
     const { statusCode, message: msg, data } = result;
     if (statusCode === 200 || statusCode === 201) {
-      sessionStorage.setItem('access_token', data.access_token);
+      sessionStorage.setItem("access_token", data.access_token);
       message.success(msg);
 
-      navigate('/layout');
+      navigate("/layout");
     } else {
-      message.error('登录失败');
+      message.error("登录失败");
     }
   };
 
   const onFinishFailed = (errorInfo: ErrorInfo) => {
-    console.log('Failed:', errorInfo);
+    console.log("Failed:", errorInfo);
   };
 
   return (
@@ -54,11 +54,17 @@ export default function Login() {
           onFinishFailed={onFinishFailed}
           autoComplete="off"
         >
-          <Form.Item name="userName" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input addonBefore={selectBefore} />
+          <Form.Item
+            name="userName"
+            rules={[{ required: true, message: "请输入用户名" }]}
+          >
+            <Input />
           </Form.Item>
 
-          <Form.Item name="userPassword" rules={[{ required: true, message: '请输入密码' }]}>
+          <Form.Item
+            name="userPassword"
+            rules={[{ required: true, message: "请输入密码" }]}
+          >
             <Input.Password />
           </Form.Item>
 
