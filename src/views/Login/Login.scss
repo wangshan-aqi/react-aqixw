@@ -1,25 +1,50 @@
-.login {
-    width: 100vw;
-    height: 100vh;
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../../assets/wallhaven-4o2d6p.jpg');
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .content {
+    width: 400px;
+    border: 1px solid #191717;
     background-color: #f5f5f5;
+    box-shadow: 4px 4px 4px -3px #191717;
+    border-radius: 10px;
+  }
+
+  .title {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: #fff;
+    padding: 20px;
+    background-color: rgba(36, 148, 234, 0.6);
+    border-radius: 10px 10px 0 0;
+  }
+
+  .login-menu {
     display: flex;
-    justify-content: center;
-    align-items: center;
-
-    .content {
-        width: 400px;
-        background-color: rgba(66, 193, 240, .5);
-        box-shadow: 0px 12px 8px -12px #191717;
-        border-radius: 10px;
+    box-shadow: 0px 1px -2px -1px #191717;
+    li {
+      flex: 1;
     }
-
-    .title {
-        text-align: center;
-        font-size: 30px;
-        font-weight: bold;
-        color: #fff;
-        padding: 20px;
-        background-color: #191717;
-        border-radius: 10px 10px 0 0;
-    }
+  }
+  .ant-menu-dark {
+    color: #000;
+    background: #f5f5f5;
+  }
+  .ant-menu.ant-menu-inline > .ant-menu-item:hover {
+    color: rgb(16, 14, 14);
+  }
+  .ant-menu-dark.ant-menu-inline > .ant-menu-item-selected {
+    color: #000;
+    background-color: rgba(0, 229, 255, 0.6);
+  }
+  .ant-menu-dark:not(.ant-menu-horizontal)
+    .ant-menu-item:not(.ant-menu-item-selected):active {
+    color: #000;
+    background-color: rgba(0, 229, 255, 0.6);
+  }
 }

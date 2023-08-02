@@ -1,5 +1,5 @@
-import { IResponseProps } from '../interfaces/common';
-import axios from '../utils/request';
+import { IResponseProps } from "../interfaces/common";
+import axios from "../utils/request";
 
 export interface ILoginProps {
   userName: string;
@@ -8,6 +8,6 @@ export interface ILoginProps {
 
 /** 菜单列表 */
 export const getMenuListService = async (data: unknown) => {
-  const result = await axios.get<IResponseProps>('/menu-list', data);
+  const result = await axios.get<IResponseProps>("/menu-list", data);
   return result;
 };

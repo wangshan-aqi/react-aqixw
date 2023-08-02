@@ -16,7 +16,7 @@ instance.interceptors.request.use(
     if (apiPrefix) {
       config.url = `${apiPrefix}${config.url}`;
     }
-    const access_token = sessionStorage.getItem('access_token');
+    const access_token = localStorage.getItem('access_token');
     if (access_token) {
       config.headers.Authorization = `Bearer ${access_token}`;
     }
@@ -29,7 +29,7 @@ instance.interceptors.request.use(
     // 对请求错误做些什么
     // Do something with request error
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add a response interceptor
@@ -37,7 +37,11 @@ instance.interceptors.response.use(
   function (response) {
     // 对响应数据做点什么
     // Do something with response data
-    if (response.status === 200 || response.status === 201 || response.status === 204) {
+    if (
+      response.status === 200 ||
+      response.status === 201 ||
+      response.status === 204
+    ) {
       return response.data;
     } else {
       return Promise.reject(response.data);
@@ -60,7 +64,7 @@ instance.interceptors.response.use(
       }
     }
     // return Promise.reject(error);
-  }
+  },
 );
 
 // 使用 axios-retry 进行重试配置
@@ -74,9 +78,11 @@ axiosRetry(instance, {
 // 封装请求方法
 const request = {
   post: <T>(url: string, data: unknown): Promise<T> => instance.post(url, data),
-  patch: <T>(url: string, data: unknown): Promise<T> => instance.patch(url, data),
+  patch: <T>(url: string, data: unknown): Promise<T> =>
+    instance.patch(url, data),
   put: <T>(url: string, data: unknown): Promise<T> => instance.put(url, data),
-  get: <T>(url: string, params: unknown): Promise<T> => instance.get(url, { params }),
+  get: <T>(url: string, params: unknown): Promise<T> =>
+    instance.get(url, { params }),
   delete: <T>(url: string): Promise<T> => instance.delete(url),
   jsonp: jsonpFunc,
 };

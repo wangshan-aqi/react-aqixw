@@ -1,6 +1,6 @@
 export interface IResponseProps {
   cmd: string;
-  data: Record<string, any>;
+  data: any;
   message: string;
   statusCode: number;
 }
