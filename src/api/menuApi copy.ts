@@ -32,7 +32,7 @@ export enum CanModify {
   NOMODIFY = 1,
 }
 /** 菜单列表 */
-export const getMenuListService = async (data: any) => {
-  const result = await axios.get<MenuItem[]>('/menu-list', data);
-  return result;
+export const getMenuListService = async (data: unknown) => {
+  // const result = await axios.get<IResponseProps>("/menu-list", data);
+  // return result;
 };

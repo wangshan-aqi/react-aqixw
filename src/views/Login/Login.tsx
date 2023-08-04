@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IBasicLoginProps, loginService } from '../../api/userApi';
-import './Login.scss';
+import './login.scss';
 import { Button, Checkbox, Form, Input, Menu, MenuProps, message } from 'antd';
 import IconFont from '@/components/IconFont/IconFont';
 import { encryptedText } from '@/utils/constant';
+import { useRequest } from '@/hooks/use-request';
+import { antdUtils } from '@/utils/antd';
+import { useGlobalStore } from '@/stores/global';
 
 interface ErrorInfo {
   values: unknown;
@@ -13,7 +16,11 @@ interface ErrorInfo {
 export default function Login() {
   const navigate = useNavigate();
   const [current, setCurrent] = useState('username');
-  const onFinish = async (values: IBasicLoginProps) => {
+
+  const { runAsync: login, loading } = useRequest(loginService, {
+    manual: true,
+  });
+  const onFinish = async (values: any) => {
     const { userPassword } = values;
     let result = null;
     // 加密 密码
@@ -23,45 +30,73 @@ export default function Login() {
       switch (current) {
         case 'username':
           // 加密 用户名
-          result =
-            values.userName &&
-            (await loginService({
-              userName: encryptedText(values.userName),
-              userPassword: encryptUserPassword,
-            }));
+          result = await login({
+            userName: encryptedText(values.userName),
+            userPassword: encryptUserPassword,
+          });
+          // result =
+          //   values.userName &&
+          //   (await loginService({
+          //     userName: encryptedText(values.userName),
+          //     userPassword: encryptUserPassword,
+          //   }));
           break;
-        case 'phone':
-          // 加密 手机号
-          result =
-            values.telPhone &&
-            (await loginService({
-              telPhone: encryptedText(values.telPhone),
-              userPassword: encryptUserPassword,
-            }));
-          break;
-        case 'email':
-          // 加密 邮箱
-          result =
-            values.email &&
-            (await loginService({
-              email: encryptedText(values.email),
-              userPassword: encryptUserPassword,
-            }));
-          break;
+        // case 'phone':
+        //   // 加密 手机号
+        //   result =
+        //     values.telPhone &&
+        //     (await loginService({
+        //       telPhone: encryptedText(values.telPhone),
+        //       userPassword: encryptUserPassword,
+        //     }));
+        //   break;
+        // case 'email':
+        //   // 加密 邮箱
+        //   result =
+        //     values.email &&
+        //     (await loginService({
+        //       email: encryptedText(values.email),
+        //       userPassword: encryptUserPassword,
+        //     }));
+        //   break;
         default:
           break;
       }
     }
     if (result) {
-      const { statusCode, message: msg, data } = result;
-      if (statusCode === 200 || statusCode === 201) {
-        localStorage.setItem('access_token', data.access_token);
-        message.success(msg);
-
+      const [err, data] = result;
+      if (data.statusCode === 201) {
+        antdUtils.notification?.success({
+          message: data.message,
+          description: '登录成功',
+        });
+        useGlobalStore.setState({
+          access_token: data.data.access_token,
+          refresh_token: data.data.refresh_token,
+        });
         navigate('/layout');
       } else {
-        message.error('登录失败');
+        antdUtils.notification?.error({
+          message: data.message,
+          description: '登录失败',
+        });
       }
+      //   localStorage.setItem('access_token', data.access_token);
+      //   message.success(msg);
+
+      //   navigate('/layout');
+      // } else {
+      //   message.error('登录失败');
+      // }
+      // const { statusCode, message: msg, data } = result;
+      // if (statusCode === 200 || statusCode === 201) {
+      //   localStorage.setItem('access_token', data.access_token);
+      //   message.success(msg);
+
+      //   navigate('/layout');
+      // } else {
+      //   message.error('登录失败');
+      // }
     }
   };
 
@@ -148,7 +183,7 @@ export default function Login() {
               <Checkbox>我同意《登录》</Checkbox>
             </Form.Item>
             <Form.Item className="text-center">
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={loading}>
                 登录
               </Button>
             </Form.Item>

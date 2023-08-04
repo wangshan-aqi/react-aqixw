@@ -1,6 +1,6 @@
-export interface IResponseProps {
+export interface IResponseProps<T> {
   cmd: string;
-  data: any;
+  data: T;
   message: string;
   statusCode: number;
 }

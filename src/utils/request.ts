@@ -1,101 +1,145 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import axiosRetry from 'axios-retry';
+import { useGlobalStore } from '@/stores/global';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  CreateAxiosDefaults,
+  InternalAxiosRequestConfig,
+} from 'axios';
+import { antdUtils } from './antd';
 import jsonpAdapter from 'axios-jsonp';
-import { message } from 'antd';
+import { IResponseProps } from '@/interfaces/common';
 
-const instance = axios.create({
-  baseURL: process.env.REACT_APP_BASE_URL,
-  timeout: 20000,
-  //   headers: { 'X-Custom-Header': 'foobar' },
-});
+// 声明一个 ResponseData 类型的接口 用于约束接口返回值  Promise<[boolean, T, AxiosResponse<T>]> 三个参数分别是 是否成功，返回值，AxiosResponse
+export type ResponseData<T = any> = Promise<[boolean, T, AxiosResponse<T>]>;
 
-// Add a request interceptor 请求拦截器
-instance.interceptors.request.use(
-  function (config) {
+class RequestInstance {
+  constructor(config?: CreateAxiosDefaults) {
+    this.axiosInstance = axios.create(config); // 创建axios实例
+    this.axiosInstance.interceptors.request.use(
+      // 请求拦截器 InternalAxiosRequestConfig 是 axios 的请求配置类型 也就是 AxiosRequestConfig 的子集 用于约束请求参数 config
+      (axiosConfig: InternalAxiosRequestConfig) => {
+        return this.requestInterceptor(axiosConfig);
+      },
+      (error: any) => {
+        return Promise.reject(error);
+      },
+    );
+    this.axiosInstance.interceptors.response.use(
+      (response: AxiosResponse<unknown, unknown>) => {
+        return this.responseInterceptor(response);
+      },
+      (error: any) => {
+        return this.responseErrorInterceptor(error);
+      },
+    );
+  }
+
+  private axiosInstance: AxiosInstance; // axios实例
+
+  private refreshTokenFlag = false;
+  private requestQueue: {
+    resolve: any;
+    config: any;
+    type: 'reuqest' | 'response';
+  }[] = [];
+  private limit = 3;
+
+  private requestingCount = 0;
+
+  setLimit(limit: number) {
+    this.limit = limit;
+  }
+
+  private requestInterceptor(axiosConfig: InternalAxiosRequestConfig) {
+    const { access_token } = useGlobalStore.getState();
     const apiPrefix = process.env.REACT_APP_API_PREFIX;
     if (apiPrefix) {
-      config.url = `${apiPrefix}${config.url}`;
+      axiosConfig.url = `${apiPrefix}${axiosConfig.url}`;
     }
-    const access_token = localStorage.getItem('access_token');
     if (access_token) {
-      config.headers.Authorization = `Bearer ${access_token}`;
+      axiosConfig.headers.Authorization = `Bearer ${access_token}`;
     }
 
-    // 在发送请求之前做些什么
-    // Do something before request is sent
-    return config;
-  },
-  function (error) {
-    // 对请求错误做些什么
-    // Do something with request error
-    return Promise.reject(error);
-  },
-);
+    return Promise.resolve(axiosConfig);
+  }
 
-// Add a response interceptor
-instance.interceptors.response.use(
-  function (response) {
-    // 对响应数据做点什么
-    // Do something with response data
-    if (
-      response.status === 200 ||
-      response.status === 201 ||
-      response.status === 204
-    ) {
-      return response.data;
+  private responseInterceptor(
+    response: AxiosResponse<unknown, unknown>,
+  ): Promise<any> {
+    return Promise.resolve([false, response.data, response]);
+  }
+
+  private responseErrorInterceptor(error: any): Promise<any> {
+    const { config, status } = error?.response || {};
+    if (status === 401) {
+      // 401 未授权
     } else {
-      return Promise.reject(response.data);
+      antdUtils.notification?.error({
+        message: '出错了',
+        description: error?.response?.data?.message,
+      });
     }
-  },
-  function (error) {
-    // 对响应错误做点什么
-    // Do something with response error
-    if (error.response) {
-      switch (error.response.status) {
-        case 401:
-          message.error(error.response.data.message);
+    return Promise.reject(error);
+  }
 
-        // 返回 401 清除token信息并跳转到登录页面
-        // store.commit(types.LOGOUT);
-        // router.replace({
-        //     path: 'login',
-        //     query: {redirect: router.currentRoute.fullPath}
-        // })
-      }
-    }
-    // return Promise.reject(error);
-  },
-);
+  request<T, D = any>(config: AxiosRequestConfig<D>): ResponseData<T> {
+    return this.axiosInstance(config);
+  }
 
-// 使用 axios-retry 进行重试配置
-axiosRetry(instance, {
-  retries: 3, // 最大重试次数
-  retryDelay: retryCount => {
-    return retryCount * 1000; // 重试延迟时间，这里设置为每次重试增加 1 秒
-  },
+  get<T, D = any>(
+    url: string,
+    config?: AxiosRequestConfig<D>,
+  ): ResponseData<IResponseProps<T>> {
+    return this.axiosInstance.get(url, config);
+  }
+
+  delete<T, D = any>(
+    url: string,
+    config?: AxiosRequestConfig<D>,
+  ): ResponseData<T> {
+    return this.axiosInstance.delete(url, config);
+  }
+
+  post<T, D = any>(
+    url: string,
+    data?: D,
+    config?: AxiosRequestConfig<D>,
+  ): ResponseData<IResponseProps<T>> {
+    return this.axiosInstance.post(url, data, config);
+  }
+
+  put<T, D = any>(
+    url: string,
+    data?: D,
+    config?: AxiosRequestConfig<D>,
+  ): ResponseData<T> {
+    return this.axiosInstance.put(url, data, config);
+  }
+
+  patch<T, D = any>(
+    url: string,
+    data?: D,
+    config?: AxiosRequestConfig<D>,
+  ): ResponseData<T> {
+    return this.axiosInstance.patch(url, data, config);
+  }
+
+  jsonp<T, D = any>(
+    url: string,
+    config?: AxiosRequestConfig<D>,
+  ): ResponseData<T> {
+    return this.axiosInstance({
+      url,
+      adapter: jsonpAdapter,
+      ...config,
+    });
+  }
+}
+
+const request = new RequestInstance({
+  baseURL: process.env.REACT_APP_BASE_URL,
+  timeout: 20000,
 });
-
-// 封装请求方法
-const request = {
-  post: <T>(url: string, data: unknown): Promise<T> => instance.post(url, data),
-  patch: <T>(url: string, data: unknown): Promise<T> =>
-    instance.patch(url, data),
-  put: <T>(url: string, data: unknown): Promise<T> => instance.put(url, data),
-  get: <T>(url: string, params: unknown): Promise<T> =>
-    instance.get(url, { params }),
-  delete: <T>(url: string): Promise<T> => instance.delete(url),
-  jsonp: jsonpFunc,
-};
-// const postRequest = <T>(url: string, data: unknown): Promise<T> => instance.post(url, data);
-export function jsonpFunc(url: string, config: AxiosRequestConfig = {}) {
-  return requestJsonP(url, { ...config, adapter: jsonpAdapter });
-}
-
-export async function requestJsonP(url: string, config?: AxiosRequestConfig) {
-  const response = await instance.request({ url, ...config });
-  const result = response.data;
-  // 你的业务判断逻辑
-  return result;
-}
 
 export default request;

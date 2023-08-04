@@ -1,14 +1,14 @@
 import { Menu } from 'antd';
 import { Link } from 'react-router-dom';
 import IconFont from '../IconFont/IconFont';
-import './MenuList.scss';
+import './MenuTree.scss';
 
 interface IProps {
   menuItems: any[];
   collapsed: boolean;
 }
 
-const MenuList = (props: IProps) => {
+const MenuTree = (props: IProps) => {
   const { collapsed } = props;
   return (
     <ul className="mb-0">
@@ -42,7 +42,10 @@ const MenuList = (props: IProps) => {
               })}
             </li>
           ) : (
-            <li className="flex items-center w-full h-10 justify-center hover:text-sky-700">
+            <li
+              key={item.key}
+              className="flex items-center w-full h-10 justify-center hover:text-sky-700"
+            >
               <IconFont
                 className={`text-[16px] text-[#fff] ${
                   !collapsed ? 'mr-4' : ''
@@ -68,4 +71,4 @@ const MenuList = (props: IProps) => {
   );
 };
 
-export default MenuList;
+export default MenuTree;
