@@ -71,7 +71,7 @@ class RequestInstance {
   }
 
   private responseErrorInterceptor(error: any): Promise<any> {
-    const { config, status } = error?.response || {};
+    const { status } = error?.response || {};
     if (status === 401) {
       // 401 未授权
     } else {

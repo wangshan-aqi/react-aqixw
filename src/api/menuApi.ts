@@ -1,5 +1,6 @@
+import { ICreateMenuForm } from '@/interfaces/menu-list';
 import { IResponseProps } from '../interfaces/common';
-import axios from '../utils/request';
+import request from '../utils/request';
 
 export interface ILoginProps {
   userName: string;
@@ -32,7 +33,23 @@ export enum CanModify {
   NOMODIFY = 1,
 }
 /** 菜单列表 */
-export const getMenuListService = async (data: any) => {
-  const result = await axios.get<MenuItem[]>('/menu-list', data);
-  return result;
+// export const getMenuListService = async (data: any) => {
+//   const result = await axios.get<MenuItem[]>('/menu-list', data);
+//   return result;
+// };
+// export const getMenuListService = async (data: any) => {
+//   const result = await axios.get<MenuItem[]>('/menu-list/menu-parents', data);
+//   return result;
+// };
+
+const menuListServer = {
+  getMenuList: (data: any) =>
+    request.post<MenuItem[]>('/menu-list/search', data),
+  getParents: (data: any) =>
+    request.get<{ id: number; name: string }[]>('/menu-parents', data),
+  createMenu: (data: ICreateMenuForm) => {
+    return request.post<any>('/menu-list', data);
+  },
 };
+
+export default menuListServer;

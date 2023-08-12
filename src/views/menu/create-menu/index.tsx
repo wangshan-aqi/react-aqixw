@@ -1,6 +1,8 @@
+import menuListServer from '@/api/menuApi';
 import IconFont from '@/components/IconFont/IconFont';
-import { Button, Form, Input, Modal, Select } from 'antd';
-import React, { useState } from 'react';
+import { antdUtils } from '@/utils/antd';
+import { Form, Input, InputNumber, Modal, Select } from 'antd';
+import React, { useEffect, useState } from 'react';
 const { Option } = Select;
 
 type CreateMenuFormProps = {
@@ -10,121 +12,154 @@ type CreateMenuFormProps = {
 };
 
 const CreateMenuForm: React.FC<CreateMenuFormProps> = props => {
+  const { visible, onCancel, onSave } = props;
+  const [menuParents, setMenuParents] = useState<
+    { id: number; name: string }[]
+  >([]);
   const [form] = Form.useForm();
-  const onFinish = (values: any) => {
-    console.log('Success:', values);
+  const onFinish = async (values: any) => {
+    values = {
+      ...values,
+      order: Number(values.order),
+    };
+    const [err, res] = await menuListServer.createMenu(values);
+    // console.log(res, '----');
+    if (!err) {
+      onSave();
+    } else {
+      antdUtils.notification?.error({
+        message: '出错了',
+        description: res.message,
+      });
+    }
+  };
+  const getMenuParents = async () => {
+    const [error, res] = await menuListServer.getParents({});
+    if (!error) {
+      if (res.data.length > 0) {
+        setMenuParents(res.data);
+      }
+    }
   };
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
-  };
+  useEffect(() => {
+    getMenuParents();
 
-  type FieldType = {
-    menuName: string;
-    routeName: string;
-    routePath: string;
-    filePath: string;
-    icon?: string;
-    parentId: string;
-    roleCode: string;
-  };
-  //   const [isModalOpen, setIsModalOpen] = useState(false);
+    if (visible) {
+      // if (editData) {
+      //   form.setFieldsValue(editData);
+      // } else if (curRecord) {
+      //   form.setFieldsValue({
+      //     show: true,
+      //     type: curRecord?.type === MenuType.MENU ? MenuType.MENU : MenuType.DIRECTORY,
+      //   })
+      // } else {
+      //   form.setFieldsValue({
+      //     show: true,
+      //     type: MenuType.DIRECTORY,
+      //   })
+      // }
+    } else {
+      form.resetFields();
+    }
+  }, [visible]);
 
-  //   const showCreateMenuModal = () => {
-  //     setIsModalOpen(true);
-  //   };
-
-  //   const handleConfirmCreate = () => {
-  //     setIsModalOpen(false);
-  //   };
-
-  //   const handleCancelCreate = () => {
-  //     setIsModalOpen(false);
-  //   };
-
-  const parentIdOptions = [
-    { label: '顶级目录', value: '0' },
-    { label: '系统管理', value: '1' },
-    { label: '用户管理', value: '2' },
-    { label: '角色管理', value: '3' },
-    { label: '菜单管理', value: '4' },
+  const antdIcons = [
+    { label: '设置', value: 'shezhi' },
+    { label: '首页', value: 'shouye' },
+    { label: '个人', value: 'geren' },
   ];
+
   return (
     <Modal
+      forceRender
       title="创建菜单"
-      open={props.visible}
+      open={visible}
       onOk={() => form.submit()}
-      onCancel={props.onCancel}
+      onCancel={() => {
+        form.resetFields();
+        onCancel();
+      }}
       destroyOnClose
     >
       <Form
-        name="创建菜单"
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 16 }}
+        form={form}
         style={{ maxWidth: 600 }}
-        initialValues={{ remember: true }}
+        labelCol={{ flex: '0 0 100px' }}
+        wrapperCol={{ span: 16 }}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-        autoComplete="off"
       >
-        <Form.Item<FieldType>
+        <Form.Item
           label="菜单名称"
           name="menuName"
           rules={[{ required: true, message: '请输入菜单名称!' }]}
         >
-          <Input />
+          <Input placeholder="菜单名称，首页" />
         </Form.Item>
 
-        <Form.Item<FieldType>
+        <Form.Item
           label="路由名称"
           name="routeName"
           rules={[{ required: true, message: '请输入路由名称!' }]}
         >
-          <Input />
+          <Input placeholder="路由名称，Home" />
         </Form.Item>
-        <Form.Item<FieldType>
+        <Form.Item
           label="路由路径"
           name="routePath"
           rules={[{ required: true, message: '请输入路由路径!' }]}
         >
           <Input />
         </Form.Item>
-        <Form.Item<FieldType>
+        <Form.Item
           label="组件路径"
           name="filePath"
           rules={[{ required: true, message: '请输入组件路径!' }]}
         >
           <Input />
         </Form.Item>
-        <Form.Item<FieldType> label="路由图标" name="icon">
+        <Form.Item label="路由图标" name="icon">
           <Select>
-            <Option value="shezhi">
-              <IconFont name="shezhi" />
-            </Option>
-            <Option value="shouye">
-              <IconFont name="shouye" />
-            </Option>
-            <Option value="geren">
-              <IconFont name="geren" />
-            </Option>
+            {antdIcons.map(({ label, value }) => (
+              <Select.Option key={label} label={label}>
+                <IconFont name={value} />
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
-        <Form.Item<FieldType>
-          label="上级目录"
-          name="parentId"
-          rules={[{ required: true, message: '请选择上级目录' }]}
-        >
-          <Select options={parentIdOptions}></Select>
+        <Form.Item label="上级目录" name="parentId">
+          <Select>
+            {menuParents.map((item, key) => (
+              <Select.Option key={item.name}>{item.name}</Select.Option>
+            ))}
+          </Select>
         </Form.Item>
-        <Form.Item<FieldType>
+        <Form.Item
+          label="序号"
+          name="order"
+          rules={[{ required: true, message: '请输入序号' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
           label="角色编码"
           name="roleCode"
           rules={[{ required: true, message: '请选择角色编码' }]}
         >
           <Select>
-            <Option value="0">超级管理员</Option>
-            <Option value="1">管理员</Option>
-            <Option value="2">普通用户</Option>
+            <Select.Option value="0">超级管理员</Select.Option>
+            <Select.Option value="1">管理员</Select.Option>
+            <Select.Option value="2">普通用户</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item
+          label="是否可编辑"
+          name="canModify"
+          rules={[{ required: true, message: '请选择是否可编辑' }]}
+        >
+          <Select>
+            <Select.Option value={0}>否</Select.Option>
+            <Select.Option value={1}>是</Select.Option>
           </Select>
         </Form.Item>
       </Form>

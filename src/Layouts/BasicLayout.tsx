@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { Layout, Button, theme, MenuProps, Menu } from 'antd';
-import { getMenuListService } from '../api/menuApi';
-import IconFont from '@/components/IconFont/IconFont';
+// import { getMenuListService } from '../api/menuApi';
+// import IconFont from '@/components/IconFont/IconFont';
 import './BasicLayout.scss';
 import { Outlet } from 'react-router-dom';
 import MenuTree from '@/components/MenuTree/MenuTree';
-import GloablLoading from '@/components/GlobalLoading';
-import { useGlobalStore } from '@/stores/global';
-import { useUserStore } from '@/stores/global/user';
+// import GloablLoading from '@/components/GlobalLoading';
+// import { useGlobalStore } from '@/stores/global';
+// import { useUserStore } from '@/stores/global/user';
 import { menus } from './mockMenu';
 
 const { Header, Sider, Content } = Layout;
@@ -16,9 +16,9 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 const BasicLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { currentUser, setCurrentUser } = useUserStore();
-  const { access_token, lang, refresh_token } = useGlobalStore();
+  // const [loading, setLoading] = useState(true);
+  // const { currentUser, setCurrentUser } = useUserStore();
+  // const { access_token, lang, refresh_token } = useGlobalStore();
 
   const [menuList, setMenuList] = useState<any[]>([]);
   const {

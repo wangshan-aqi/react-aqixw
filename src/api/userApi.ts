@@ -1,4 +1,4 @@
-import { IResponseProps } from '../interfaces/common';
+// import { IResponseProps } from '../interfaces/common';
 import axios from '../utils/request';
 
 export interface IBasicLoginProps {
@@ -22,9 +22,7 @@ export interface IUserResponseProps {
 }
 
 // 登录
-export const loginService = async (
-  data: IUserNameLoginProps | IEmailLoginProps | ITelPhoneLoginProps,
-) => {
+export const loginService = async (data: IUserNameLoginProps) => {
   const result = await axios.post<IUserResponseProps>(
     '/auth/userNameLogin',
     data,

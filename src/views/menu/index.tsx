@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
-import { Button, Modal, Space, Table, Tag } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Button, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import CreateMenuForm from './create-menu';
+import menuListServer from '@/api/menuApi';
+// type MenuListColumnType = {
+//   key: string;
+//   id: string;
+//   menuName: string;
+//   routeName: string;
+//   routePath: string;
+//   filePath: string;
+//   icon: string;
+//   parentId: number;
+//   roleCode: string;
+//   createdAt: string;
+//   updatedAt: string;
+//   canModify: number;
+// };
 const MenuPage: React.FC = () => {
-  type MenuListColumnType = {
-    key: string;
-    id: string;
-    menuName: string;
-    routeName: string;
-    routePath: string;
-    filePath: string;
-    icon: string;
-    parentId: number;
-    roleCode: string;
-    isDelete: number;
-    createdAt: string;
-    updatedAt: string;
-    canModify: number;
-  };
+  const [createMenuModalVisible, setCreateMenuModalVisible] = useState(false);
+  const [menuList, setmenuList] = useState<any[]>([]);
 
-  const menuListColumns: ColumnsType<MenuListColumnType> = [
+  const menuListColumns: ColumnsType<any> = [
     {
       title: '菜单id',
       dataIndex: 'id',
@@ -82,7 +84,7 @@ const MenuPage: React.FC = () => {
     },
   ];
 
-  const data: MenuListColumnType[] = [
+  const data: any[] = [
     {
       key: '1',
       id: '678345698247',
@@ -93,7 +95,6 @@ const MenuPage: React.FC = () => {
       icon: 'HomeOutlined',
       parentId: 0,
       roleCode: 'admin',
-      isDelete: 0,
       createdAt: '2021-08-16T07:25:00.000Z',
       updatedAt: '2021-08-16T07:25:00.000Z',
       canModify: 0,
@@ -109,14 +110,27 @@ const MenuPage: React.FC = () => {
   const cancelCreate = () => {
     setCreateMenuModalVisible(false);
   };
-  const [createMenuModalVisible, setCreateMenuModalVisible] = useState(false);
+  const getMenuList = async () => {
+    const [error, res] = await menuListServer.getMenuList({
+      page: 1,
+      pageSize: 10,
+    });
+    if (!error) {
+      if (res.data.length > 0) {
+        setmenuList(res.data);
+      }
+    }
+  };
+  useEffect(() => {
+    getMenuList();
+  }, []);
   return (
     <div>
       <div>
         <span>菜单管理</span>
         <Button onClick={() => showCreateMenuModal()}>添加菜单</Button>
       </div>
-      <Table columns={menuListColumns} dataSource={data} />
+      {/* <Table columns={menuListColumns} dataSource={data} /> */}
       <CreateMenuForm
         onSave={saveMenu}
         onCancel={cancelCreate}
