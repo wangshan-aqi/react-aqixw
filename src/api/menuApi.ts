@@ -7,21 +7,24 @@ export interface ILoginProps {
   userPassword: string;
 }
 
-export interface MenuItem {
-  menuId: number;
+export interface IMenuItemResopnse {
+  id: number;
   menuName: string;
   routeName: string;
   routePath: string;
-  componentPath: string;
-  routeIcon: string;
+  filePath: string;
+  icon: string;
   parentId: number;
-  rolePermissions: string;
-  buttonPermissions: string;
-  isDelete: IsDelete;
-  description: string;
   createdAt: Date;
   updatedAt: Date;
-  canModify: number;
+  isModifiable: number;
+  order: number;
+}
+export interface MenuItem extends IMenuItemResopnse {
+  children?: MenuItem[];
+  parentPaths?: string[];
+  Component?: any;
+  show?: boolean;
 }
 
 export enum IsDelete {
@@ -44,11 +47,14 @@ export enum CanModify {
 
 const menuListServer = {
   getMenuList: (data: any) =>
-    request.post<MenuItem[]>('/menu-list/search', data),
+    request.post<{ data: IMenuItemResopnse[]; total: number }>(
+      '/menu-list/search',
+      data,
+    ),
   getParents: (data: any) =>
     request.get<{ id: number; name: string }[]>('/menu-parents', data),
   createMenu: (data: ICreateMenuForm) => {
-    return request.post<any>('/menu-list', data);
+    return request.post<any>('/menu-list/create', data);
   },
 };
 

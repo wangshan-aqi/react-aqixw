@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 type State = {
   darkMode: boolean;
-  collapse: boolean;
+  collapsed: boolean;
   lang: string;
   access_token: string;
   refresh_token: string;
@@ -10,7 +10,7 @@ type State = {
 
 type Actions = {
   setDarkMode: (darkMode: boolean) => void;
-  setCollapse: (collapse: boolean) => void;
+  setCollapsed: (collapsed: boolean) => void;
   setLang: (lang: string) => void;
   setToken: (token: string) => void;
   setRefreshToken: (refreshToken: string) => void;
@@ -22,12 +22,12 @@ export const useGlobalStore = create<State & Actions>()(
       set => {
         return {
           darkMode: false,
-          collapse: false,
+          collapsed: false,
           lang: 'zh',
           access_token: '',
           refresh_token: '',
           setDarkMode: (darkMode: State['darkMode']) => set({ darkMode }),
-          setCollapse: (collapse: State['collapse']) => set({ collapse }),
+          setCollapsed: (collapsed: State['collapsed']) => set({ collapsed }),
           setLang: (lang: State['lang']) => set({ lang }),
           setToken: (access_token: State['access_token']) =>
             set({ access_token }),

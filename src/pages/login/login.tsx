@@ -74,7 +74,7 @@ export default function Login() {
           access_token: data.data.access_token,
           refresh_token: data.data.refresh_token,
         });
-        navigate('/layout');
+        navigate('/menu-page');
       } else {
         antdUtils.notification?.error({
           message: data.message,

@@ -69,6 +69,11 @@ const CreateMenuForm: React.FC<CreateMenuFormProps> = props => {
     { label: '首页', value: 'shouye' },
     { label: '个人', value: 'geren' },
   ];
+  const roleOptions = [
+    { label: '超级管理员', value: 0 },
+    { label: '管理员', value: 1 },
+    { label: '普通用户', value: 2 },
+  ];
 
   return (
     <Modal
@@ -121,7 +126,7 @@ const CreateMenuForm: React.FC<CreateMenuFormProps> = props => {
         <Form.Item label="路由图标" name="icon">
           <Select>
             {antdIcons.map(({ label, value }) => (
-              <Select.Option key={label} label={label}>
+              <Select.Option key={label} label={label} value={value}>
                 <IconFont name={value} />
               </Select.Option>
             ))}
@@ -147,14 +152,16 @@ const CreateMenuForm: React.FC<CreateMenuFormProps> = props => {
           rules={[{ required: true, message: '请选择角色编码' }]}
         >
           <Select>
-            <Select.Option value="0">超级管理员</Select.Option>
-            <Select.Option value="1">管理员</Select.Option>
-            <Select.Option value="2">普通用户</Select.Option>
+            {roleOptions.map((item, key) => (
+              <Select.Option key={item.label} value={item.value}>
+                {item.label}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item
           label="是否可编辑"
-          name="canModify"
+          name="isModifiable"
           rules={[{ required: true, message: '请选择是否可编辑' }]}
         >
           <Select>

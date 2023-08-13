@@ -1,26 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, useEffect, useState } from 'react';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { Layout, Button, theme, MenuProps, Menu } from 'antd';
 // import { getMenuListService } from '../api/menuApi';
 // import IconFont from '@/components/IconFont/IconFont';
-import './BasicLayout.scss';
+import './basicLayout.scss';
 import { Outlet } from 'react-router-dom';
 import MenuTree from '@/components/MenuTree/MenuTree';
+import menuListServer, { IMenuItemResopnse, MenuItem } from '@/api/menuApi';
+import SiderTree from '@/components/SiderTree/SiderTree';
+import { replaceRoutes } from '@/router/router';
+import Result404 from '@/404';
+import { useGlobalStore } from '@/stores/global';
+import GloablLoading from '@/components/GlobalLoading';
 // import GloablLoading from '@/components/GlobalLoading';
 // import { useGlobalStore } from '@/stores/global';
 // import { useUserStore } from '@/stores/global/user';
-import { menus } from './mockMenu';
 
 const { Header, Sider, Content } = Layout;
-type MenuItem = Required<MenuProps>['items'][number];
 
 const BasicLayout: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  // const [loading, setLoading] = useState(true);
+  // const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useGlobalStore();
+  const [loading, setLoading] = useState(true);
   // const { currentUser, setCurrentUser } = useUserStore();
   // const { access_token, lang, refresh_token } = useGlobalStore();
 
-  const [menuList, setMenuList] = useState<any[]>([]);
+  const [menuList, setMenuList] = useState<IMenuItemResopnse[]>([]);
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -28,43 +33,108 @@ const BasicLayout: React.FC = () => {
   useEffect(() => {
     getMenuList();
   }, []);
+  useEffect(() => {
+    if (menuList.length) {
+      const menuGroup = menuList.reduce<Record<string, MenuItem[]>>(
+        (prev: any, menu: any) => {
+          if (!menu.parentId) {
+            return prev;
+          }
 
-  const items: MenuItem[] = generateTree(menuList);
+          if (!prev[menu.parentId]) {
+            prev[menu.parentId] = [];
+          }
+
+          prev[menu.parentId].push(menu);
+          return prev;
+        },
+        {},
+      );
+      const routes: MenuItem[] = [];
+      const arr = formatMenus(
+        menuList.filter(menu => !menu.parentId),
+        menuGroup,
+        routes,
+      );
+
+      replaceRoutes('*', [
+        ...routes.map(menu => {
+          return {
+            path: `/*${menu.routePath}`,
+            Component: menu.filePath
+              ? lazy(() => import(`@/pages${menu.filePath}`))
+              : null,
+            id: `/*${menu.routePath}`,
+            handle: {
+              parentPaths: menu.parentPaths,
+              path: menu.routePath,
+            },
+          };
+        }),
+        {
+          id: '*',
+          path: '*',
+          Component: Result404,
+        },
+      ]);
+    }
+
+    setLoading(false);
+  }, [menuList]);
+
   const getMenuList = async () => {
-    // const res = await getMenuListService({});
-    // console.log(res, 'res');
-
-    // if (res && res.statusCode !== 200) return;
-    // setMenuList(res.data);
-    setMenuList(menus);
+    const [error, res] = await menuListServer.getMenuList({
+      page: 1,
+      pageSize: 999,
+    });
+    if (!error) {
+      if (res.data) {
+        setMenuList(res.data.data);
+      }
+    }
   };
 
   /** 格式化菜单路由 */
-  // const formatMenus = (menus: any[], menuGroup: Record<string, MenuItem[]) => {
+  const formatMenus = (
+    menus: MenuItem[],
+    menuGroup: Record<string, MenuItem[]>,
+    routes: MenuItem[],
+    parentMenu?: MenuItem,
+  ): MenuItem[] => {
+    return menus.map(menu => {
+      const children = menuGroup[menu.id];
+      const parentPaths = parentMenu?.parentPaths || [];
+      const routePath =
+        (parentMenu
+          ? `${parentPaths.at(-1)}${menu.routePath}`
+          : menu.routePath) || '';
 
-  // };
-  function generateTree(dataList: any[], parentId = 0) {
-    const children: any = dataList
-      .filter(item => item.parentId === parentId)
-      .map(item => ({
-        ...item,
-        label: item.menuName,
-        key: item.menuId,
-        children: generateTree(dataList, item.menuId),
-      }));
-
-    return children.length > 0 ? children : null;
+      routes.push({
+        ...menu,
+        routePath,
+        parentPaths,
+      });
+      return {
+        ...menu,
+        parentPaths,
+        children: children
+          ? formatMenus(children, menuGroup, routes, {
+              ...menu,
+              parentPaths: [...parentPaths, routePath || ''].filter(Boolean),
+            })
+          : [],
+      };
+    });
+  };
+  // loading
+  if (loading) {
+    return <GloablLoading />;
   }
-
-  // if (loading || !currentUser) {
-  //   return <GloablLoading />;
-  // }
-
   return (
     <Layout hasSider className="layout-container">
-      <Sider trigger={null} collapsible collapsed={collapsed}>
-        <MenuTree menuItems={items} collapsed={collapsed} />
-      </Sider>
+      {/* <Sider> */}
+      <SiderTree menuList={menuList} />
+      {/* </Sider> */}
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }}>
           <Button

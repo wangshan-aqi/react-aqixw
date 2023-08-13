@@ -10,16 +10,18 @@ import {
   createBrowserRouter,
 } from 'react-router-dom';
 import { App, Menu } from 'antd';
-import MenuPage from '@/views/menu';
-import UserPage from '@/views/user';
-import UserRolePage from '@/views/user-role';
+import MenuPage from '@/pages/menu';
+import UserPage from '@/pages/user';
+import UserRolePage from '@/pages/user-role';
 
 // 懒加载组件
-const Login = lazy(() => import('../views/login/login'));
+const Login = lazy(() => import('../pages/login/login'));
+
 const ResetPassword = lazy(
-  () => import('../views/login/reset-password/reset-password'),
+  () => import('../pages/login/reset-password/reset-password'),
 );
-const BasicLayout = lazy(() => import('../layouts/BasicLayout'));
+
+const BasicLayout = lazy(() => import('../layouts/basicLayout'));
 
 /**
  * 定义应用程序的路由对象
@@ -27,28 +29,20 @@ const BasicLayout = lazy(() => import('../layouts/BasicLayout'));
  */
 export const router = createBrowserRouter([
   {
-    path: '/user/login',
+    path: '/login',
     Component: Login,
   },
   {
-    path: '/user/resetPassword',
+    path: '/resetPassword',
     Component: ResetPassword,
   },
   {
-    path: '',
+    path: '*',
     Component: BasicLayout,
     children: [
       {
-        path: '/menu-page',
+        path: '*/menu-page',
         Component: MenuPage,
-      },
-      {
-        path: '/role-page',
-        Component: UserPage,
-      },
-      {
-        path: '/user-page',
-        Component: UserRolePage,
       },
     ],
   },

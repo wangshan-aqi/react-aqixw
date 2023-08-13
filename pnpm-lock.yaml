@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -50,6 +50,9 @@ dependencies:
   crypto-js:
     specifier: ^4.1.1
     version: 4.1.1
+  dayjs:
+    specifier: ^1.11.9
+    version: 1.11.9
   dotenv:
     specifier: ^16.3.1
     version: 16.3.1

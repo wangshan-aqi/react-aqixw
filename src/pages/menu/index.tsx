@@ -3,23 +3,12 @@ import { Button, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import CreateMenuForm from './create-menu';
 import menuListServer from '@/api/menuApi';
-// type MenuListColumnType = {
-//   key: string;
-//   id: string;
-//   menuName: string;
-//   routeName: string;
-//   routePath: string;
-//   filePath: string;
-//   icon: string;
-//   parentId: number;
-//   roleCode: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   canModify: number;
-// };
+import dayjs from 'dayjs';
+
 const MenuPage: React.FC = () => {
   const [createMenuModalVisible, setCreateMenuModalVisible] = useState(false);
-  const [menuList, setmenuList] = useState<any[]>([]);
+  const [menuList, setMenuList] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
 
   const menuListColumns: ColumnsType<any> = [
     {
@@ -63,41 +52,27 @@ const MenuPage: React.FC = () => {
       key: 'roleCode',
     },
     {
-      title: '是否可删除',
-      dataIndex: 'isDelete',
-      key: 'isDelete',
-    },
-    {
       title: '路由创建时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      render: (text: string) => {
+        const time = dayjs(text).format('YYYY-MM-DD HH:mm:ss');
+        return <div>{time}</div>;
+      },
     },
     {
       title: '修改时间',
       dataIndex: 'updatedAt',
       key: 'updatedAt',
+      render: (text: string) => {
+        const time = dayjs(text).format('YYYY-MM-DD HH:mm:ss');
+        return <div>{text ? time : ''}</div>;
+      },
     },
     {
       title: '是否可修改',
-      dataIndex: 'canModify',
-      key: 'canModify',
-    },
-  ];
-
-  const data: any[] = [
-    {
-      key: '1',
-      id: '678345698247',
-      menuName: '首页',
-      routeName: '首页',
-      routePath: '/home',
-      filePath: 'src/views/home/index.tsx',
-      icon: 'HomeOutlined',
-      parentId: 0,
-      roleCode: 'admin',
-      createdAt: '2021-08-16T07:25:00.000Z',
-      updatedAt: '2021-08-16T07:25:00.000Z',
-      canModify: 0,
+      dataIndex: 'isModifiable',
+      key: 'isModifiable',
     },
   ];
 
@@ -116,8 +91,9 @@ const MenuPage: React.FC = () => {
       pageSize: 10,
     });
     if (!error) {
-      if (res.data.length > 0) {
-        setmenuList(res.data);
+      if (res.data) {
+        setMenuList(res.data.data);
+        setTotal(res.data.total);
       }
     }
   };
@@ -130,7 +106,7 @@ const MenuPage: React.FC = () => {
         <span>菜单管理</span>
         <Button onClick={() => showCreateMenuModal()}>添加菜单</Button>
       </div>
-      {/* <Table columns={menuListColumns} dataSource={data} /> */}
+      <Table bordered columns={menuListColumns} dataSource={menuList} />
       <CreateMenuForm
         onSave={saveMenu}
         onCancel={cancelCreate}
